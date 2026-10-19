@@ -223,7 +223,7 @@ export default function Home() {
         onClick={() => setModal('listDeleteTasks')}
         disabled={deletedTasks.length === 0}
       >
-        Ver tareas eliminadas
+        ¿Ver tareas eliminadas?
       </button>
 
       {modal && (
