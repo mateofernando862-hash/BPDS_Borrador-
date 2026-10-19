@@ -143,7 +143,7 @@ export default function Home() {
 
   return (
     <main className={styles.todoContainer}>
-      <h1>MI TODO LIST</h1>
+      <h1>MI TODO LIST AWS </h1>
 
       <div className={styles.inputArea}>
         <input
