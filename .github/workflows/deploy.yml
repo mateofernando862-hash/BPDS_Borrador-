@@ -20,8 +20,7 @@ jobs:
 
       - name: Build con assetPrefix hacia S3
         run: npm run build
-        env:
-          ASSET_PREFIX: https://${{ secrets.S3_BUCKET }}.s3.us-east-1.amazonaws.com
+
 
       - name: Configurar credenciales de AWS
         uses: aws-actions/configure-aws-credentials@v6
