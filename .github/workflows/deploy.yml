@@ -8,6 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -16,9 +17,10 @@ jobs:
           node-version: 20
           cache: npm
 
-      - run: npm ci
+      - name: Instalar dependencias
+        run: npm ci
 
-      - name: Build con assetPrefix hacia S3
+      - name: Build
         run: npm run build
         env:
           ASSET_PREFIX: https://${{ secrets.S3_BUCKET }}.s3.us-east-1.amazonaws.com
@@ -37,13 +39,35 @@ jobs:
             --cache-control "public,max-age=31536000,immutable"
 
       - name: Configurar SSH
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
+          set -e
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/key.pem
+          chmod 700 ~/.ssh
+
+          if [ -z "$EC2_HOST" ]; then
+            echo "ERROR: EC2_HOST está vacío o no existe en GitHub Secrets"
+            exit 1
+          fi
+
+          if [ -z "$EC2_SSH_KEY" ]; then
+            echo "ERROR: EC2_SSH_KEY está vacío o no existe en GitHub Secrets"
+            exit 1
+          fi
+
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/key.pem
           chmod 600 ~/.ssh/key.pem
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
 
       - name: Copiar HTML y el resto a EC2 (sin _next)
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
         run: |
-          rsync -avz --delete --exclude '_next/' -e "ssh -i ~/.ssh/key.pem" \
-            ./out/ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/var/www/html/
+          rsync -avz --delete --exclude '_next/' \
+            -e "ssh -i ~/.ssh/key.pem -o StrictHostKeyChecking=yes" \
+            ./out/ "${EC2_USER}@${EC2_HOST}:/var/www/html/"
