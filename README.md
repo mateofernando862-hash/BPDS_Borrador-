@@ -1,5 +1,5 @@
 # 📝 Mi todo list 
-
+ 
 Aplicación web de lista de tareas desarrollada con Nexts.js, React y Typescript.
 
 ## 📌 Descripción 
